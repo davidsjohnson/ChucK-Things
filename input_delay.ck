@@ -14,13 +14,16 @@ d => Gain fback => d;
 0.0 => fback.gain;      // and no feedback
 
 
-// Setup Events for Incoing Data
-//##############################
-class SliderEvent extends Event{
+// Setup Events for Incoming Data
+//###############################å
+
+class GridEvent extends Event{
     int id;
-    float value;
+    float x;
+    float y;
+    float z;
 }
-SliderEvent se;git 
+GridEvent chGridEvent;
 
 // Setup OSC and OSC functions/shreds for 
 // parsing incoming messages
@@ -31,8 +34,8 @@ OscIn oin;
 OscMsg msg;
 10101 => oin.port;
 
-"/rateSlider" => string rateAddress;
-rateAddress => oin.addAddress;
+"/grid3d/values" => string chGridAddress => oin.addAddress;
+
 
 // Parse OSC Events and Broadcast 
 // corresponding event
@@ -40,20 +43,31 @@ fun void waitForOSC(){
     while (true){
         oin => now;
         while(oin.recv(msg)){
-            if (msg.address == pressedAddress){
-                msg.getInt(0) => bp.id;
-                msg.getFloat(1) => bp.velocity;
-                bp.broadcast();
-            }
-            else if (msg.address == rateAddress){
-                msg.getInt(0) => se.id;
-                msg.getFloat(1) => se.value;
-                se.broadcast();
+            if (msg.address == chGridAddress){
+                msg.getInt(0) => chGridEvent.id;
+                msg.getFloat(1) => chGridEvent.x;
+                msg.getFloat(2) => chGridEvent.y;
+                msg.getFloat(3) => chGridEvent.z;
+                chGridEvent.broadcast();
             }
         }
     }
 }
 spork ~ waitForOSC();
+
+fun void updateDelayGrid(){
+    while(true){
+        chGridEvent => now;
+        <<<"Grid Event">>>;
+        <<<chGridEvent.x>>>;
+        <<<chGridEvent.y>>>;
+        <<<chGridEvent.z>>>;
+        chGridEvent.x => fback.gain;
+        chGridEvent.y => dgain.gain;
+        chGridEvent.z::ms => d.delay;
+    }
+}
+spork ~ updateDelayGrid();
 
 
 // Run the Thing
