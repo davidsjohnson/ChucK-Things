@@ -6,7 +6,7 @@
  "/audio/snare_03.wav",
  "/audio/click_05.wav",
  "/audio/kick_02.wav",
- "/audio/kick_05.wav",
+ "/audio/kick_04.wav",
  "/audio/hihat_02.wav",
  "/audio/hihat_04.wav",
  "/audio/stereo_fx_03.wav",
@@ -18,15 +18,15 @@ files.cap() => int numSamples;
 SndBuf samples[numSamples];
 
 // Initial Sound Chain with Reverb
-JCRev r => dac;
-0.2 => r.mix;
+Chorus ch => Gain g => dac;
+ch @=> UGen in;
 
 // Load files and connect to dac
 for (0 => int i; i < numSamples; 1 +=> i){
     me.dir() + files[i] => samples[i].read;
     samples[i].samples() => samples[i].pos;
 
-    samples[i] => r;
+    samples[i] => in;
 }
 
 // Setup Events for Button Presses
@@ -44,7 +44,15 @@ class SliderEvent extends Event{
     int id;
     float value;
 }
-SliderEvent se;
+SliderEvent rateEvent;
+
+class GridEvent extends Event{
+    int id;
+    float x;
+    float y;
+    float z;
+}
+GridEvent chGridEvent;
 
 // Setup OSC and OSC functions/shreds for 
 // parsing incoming messages
@@ -55,11 +63,10 @@ OscIn oin;
 OscMsg msg;
 10101 => oin.port;
 
-"/buttonPressed" => string pressedAddress;
-pressedAddress => oin.addAddress;
-
-"/rateSlider" => string rateAddress;
-rateAddress => oin.addAddress;
+// Registered OSC Addresses
+"/pad/pressed" => string pressedAddress => oin.addAddress;
+"/rateSlider/value" => string rateAddress => oin.addAddress;
+"/grid3d/values" => string chGridAddress => oin.addAddress;
 
 // Parse OSC Events and Broadcast 
 // corresponding event
@@ -73,9 +80,16 @@ fun void waitForOSC(){
                 bp.broadcast();
             }
             else if (msg.address == rateAddress){
-                msg.getInt(0) => se.id;
-                msg.getFloat(1) => se.value;
-                se.broadcast();
+                msg.getInt(0) => rateEvent.id;
+                msg.getFloat(1) => rateEvent.value;
+                rateEvent.broadcast();
+            }
+            else if (msg.address == chGridAddress){
+                msg.getInt(0) => chGridEvent.id;
+                msg.getFloat(1) => chGridEvent.x;
+                msg.getFloat(2) => chGridEvent.y;
+                msg.getFloat(3) => chGridEvent.z;
+                chGridEvent.broadcast();
             }
         }
     }
@@ -85,11 +99,23 @@ spork ~ waitForOSC();
 // Change Sample Rate based on slider event
 fun void updateSampleRate(){
     while(true){
-        se => now;
-        se.value => samples[se.id].rate;
+        rateEvent => now;
+        <<<"here: " + rateEvent.value>>>;
+        rateEvent.value => samples[rateEvent.id].rate;
     }
 }
 spork ~ updateSampleRate();
+
+fun void updateModGridPos(){
+    while(true){
+        chGridEvent => now;
+        chGridEvent.x => ch.modFreq;
+        chGridEvent.y => ch.mix;
+        chGridEvent.z => ch.modDepth;
+    }
+}
+spork ~ updateModGridPos();
+        
 
 // While loop waiting for Button Presses 
 // (which are triggered via OSC)
