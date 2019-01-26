@@ -29,7 +29,7 @@ for (0 => int i; i < numSamples; 1 +=> i){
     samples[i] => r;
 }
 
-// Setup Events for Button Presses
+// Setup Events for Button Pressess
 //################################
 
 // Button Press Event for storing data
