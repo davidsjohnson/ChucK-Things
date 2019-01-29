@@ -145,6 +145,11 @@ for (0 => int i; i < 4; 1 +=> i){
     startDur/4 => now;
 }
 
+0 => sqr.gain;
+0 => saw.gain;
+0 => tri.gain;
+startDur * 3 => now;
+
 for (0 => int i; i < 4; 1 +=> i){
     0.8 => sqr.gain;
     Std.mtof(base3) => sqr.freq;
@@ -211,4 +216,18 @@ for (0 => int i; i < 4; 1 +=> i){
     startDur => now;
     Std.mtof(base + 2) => tri.freq;
     startDur => now;
+}
+
+startDur * 1 => now;
+
+.8 => tri.gain;
+for (0 => int i; i < 4; 1 +=> i){
+    Std.mtof(base) => tri.freq;
+    startDur/8 => now;
+    Std.mtof(base + 5) => tri.freq;
+    startDur/8 => now;
+    Std.mtof(base) => tri.freq;
+    startDur/8 => now;
+    Std.mtof(base+2) => tri.freq;
+    startDur/8 => now;
 }
