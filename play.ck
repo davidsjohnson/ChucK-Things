@@ -2,7 +2,7 @@ Gain g => ADSR e => DelayL d => NRev r => dac;
 d => Gain fback => d;
 
 .8 => fback.gain;
-100 => float noteLen;
+250 => float noteLen;
 
 2500::ms => d.max;
 100::ms => d.delay;
