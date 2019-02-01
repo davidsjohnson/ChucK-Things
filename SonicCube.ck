@@ -30,6 +30,10 @@ public class SonicCube{
         note => Std.mtof => f.pfreq => fz.freq;
     }
     
+    fun void set_fback(float val){
+        val => fback.gain;
+    }
+    
     fun void gain(float g){
         g => myGain;
     }

@@ -19,8 +19,10 @@ OscSliderEvent bpmEvent;
 "/bpmslider/value" => string bpmAddress => oin.addAddress;
 
 fun void WaitForTempo(){
-    bpmEvent => now;
-    bpmEvent.val => bpm.tempo;
+    while(true){
+        bpmEvent => now;
+        bpmEvent.val => bpm.tempo;
+    }
 }
 spork ~ WaitForTempo();
 
