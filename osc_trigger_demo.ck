@@ -20,13 +20,13 @@ TriggerEvent te;
 // Start receiver
 OscIn oin;
 OscMsg msg;
-10101 => oin.port;
+10105 => oin.port;
 
 // Registered OSC Addresses
-"/trigger/enter" => string trigEnterAddress => oin.addAddress;
-"/trigger/hover" => string trigHoverAddress => oin.addAddress;
-"/trigger/selected" => string trigSelectedAddress => oin.addAddress;
-"/trigger/exit" => string trigExitAddress => oin.addAddress;
+"/pointer/trigger/enter" => string trigEnterAddress => oin.addAddress;
+"/pointer/trigger/hover" => string trigHoverAddress => oin.addAddress;
+"/pointer/trigger/selected" => string trigSelectedAddress => oin.addAddress;
+"/pointer/trigger/exit" => string trigExitAddress => oin.addAddress;
 
 // Parse OSC Events and Broadcast 
 // corresponding event
@@ -63,11 +63,11 @@ SndBuf buffy => Envelope e => dac;
 e => DelayL d => dac;
 d => Gain fback => d;
 
-.99 => fback.gain;
+0 => fback.gain;
 
 3::second => d.max;
 250::ms => d.delay;
-.6 => d.gain;
+0 => d.gain;
 
 me.dir() + "audio/"=> string basefolder;
 
