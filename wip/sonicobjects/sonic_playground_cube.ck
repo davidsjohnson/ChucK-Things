@@ -51,6 +51,18 @@ OscIn oin;
 OscMsg msg;
 10102 => oin.port;
 
+class OscStateEvent extends Event{
+    int id;
+    int state;
+}
+
+class OscXYZEvent extends Event{
+    int id;
+    float x;
+    float y;
+    float z;
+}
+
 OscStateEvent faceupEvent;
 "/osccube/faceup" => string faceupAddr => oin.addAddress;
 

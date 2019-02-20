@@ -60,8 +60,8 @@ spork ~ waitForTrigger();
 fun void waitForAcc(){
     while(true){
         accEvent => now;
-        clamp(tri.freq() + accEvent.x, 30, 3000) => tri.freq;
-        clamp(tri.gain() + accEvent.z, 0, 1) => tri.gain;
+        clamp(tri.freq() + accEvent.z, 30, 3000) => tri.freq;
+        //clamp(tri.gain() + accEvent.z, 0, 1) => tri.gain;
         
         <<<"X: ", accEvent.x>>>;
         <<<"Y: ", accEvent.y>>>;
@@ -70,7 +70,7 @@ fun void waitForAcc(){
         <<<"Gain: ", tri.gain()>>>;
     }
 }
-spork ~ waitForGyro();
+spork ~ waitForAcc();
 
 while (true){
     oin => now;
