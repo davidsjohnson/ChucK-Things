@@ -4,15 +4,18 @@
 // ###################
 
 // sound network
-adc => Gain g => dac;               // 
-adc => DelayL d => Gain dgain => dac;
+adc => HPF hpf => LPF lpf => Gain g => dac;
+lpf => DelayL d => dac;
 d => Gain fback => d;
 
 // Initial Settings
-5::second => d.max;     // Max Delay will be 5 seconds 
-0::ms => d.delay;       // start with no delay
-0.0 => fback.gain;      // and no feedback
+1000 => hpf.freq;
+1000 => lpf.freq;
 
+3000::ms => d.max;
+50::ms => d.delay;
+0.0 => fback.gain;
+0.5 => d.gain;
 
 // Setup Events for Incoming Data
 //###############################
@@ -46,86 +49,84 @@ OscMsg msg;
 10101 => oin.port;
 
 "/grid3d/values" => string chGridAddress => oin.addAddress;
+"/delay/slider/value" => string delAddress => oin.addAddress;
 "/fback/slider/value" => string fbackAddress => oin.addAddress;
 "/dgain/slider/value" => string dgainAddress => oin.addAddress;
-"/delay/slider/value" => string delayAddress => oin.addAddress;
+
 
 // Parse OSC Events and Broadcast 
 // corresponding event
-fun void waitForOSC(){
-    while (true){
-        oin => now;
-        while(oin.recv(msg)){
-            if (msg.address == chGridAddress){
-                msg.getInt(0) => chGridEvent.id;
-                msg.getFloat(1) => chGridEvent.x;
-                msg.getFloat(2) => chGridEvent.y;
-                msg.getFloat(3) => chGridEvent.z;
-                chGridEvent.broadcast();
-            }
-            else if (msg.address == fbackAddress){
-                msg.getInt(0) => fbackSlider.id;
-                msg.getFloat(1) => fbackSlider.value;
-                fbackSlider.broadcast();
-            }
-            else if (msg.address == dgainAddress){
-                msg.getInt(0) => dgainSlider.id;
-                msg.getFloat(1) => dgainSlider.value;
-                dgainSlider.broadcast();
-            }
-            else if (msg.address == delayAddress){
-                msg.getInt(0) => delaySlider.id;
-                msg.getFloat(1) => delaySlider.value;
-                delaySlider.broadcast();
-            }
-        }
-    }
-}
-spork ~ waitForOSC();
 
-fun void updateDelayGrid(){
+
+fun void updateGrid(){
     while(true){
         chGridEvent => now;
         <<<"Grid Event">>>;
         <<<chGridEvent.x>>>;
         <<<chGridEvent.y>>>;
         <<<chGridEvent.z>>>;
-        chGridEvent.x => fback.gain;
-        chGridEvent.y => dgain.gain;
-        chGridEvent.z::ms => d.delay;
+        chGridEvent.x => lpf.freq;
+        chGridEvent.z => hpf.freq;
     }
 }
-spork ~ updateDelayGrid();
+spork ~ updateGrid();
 
-fun void updateFeedback(){
-    while(true){
-        fbackSlider => now;
-        fbackSlider.value => fback.gain;
-    }
-}
-spork ~ updateFeedback();
 
-fun void updateDelayGain(){
-    while(true){
-        dgainSlider => now;
-        dgainSlider.value => dgain.gain;
-    }
-}
-spork ~ updateDelayGain();
-
-fun void updateDelay(){
+fun void UpdateDelaySlider(){
     while(true){
         delaySlider => now;
         delaySlider.value::ms => d.delay;
     }
 }
-spork ~ updateDelay();
+spork ~ UpdateDelaySlider();
+
+
+fun void UpdateFbackSlider(){
+    while(true){
+        fbackSlider => now;
+        fbackSlider.value => fback.gain;
+    }
+}
+spork ~ UpdateFbackSlider();
+
+
+fun void UpdateDgainSlider(){
+    while(true){
+        dgainSlider => now;
+        dgainSlider.value => d.gain;
+    }
+}
+spork ~ UpdateDgainSlider();
 
 // Run the Thing
 // #############
-
-while( true )
-{
-    // advance time
-    100::ms => now;
+while (true){
+    oin => now;
+    while(oin.recv(msg)){
+        if (msg.address == chGridAddress){
+            msg.getInt(0) => chGridEvent.id;
+            msg.getFloat(1) => chGridEvent.x;
+            msg.getFloat(2) => chGridEvent.y;
+            msg.getFloat(3) => chGridEvent.z;
+            chGridEvent.broadcast();
+        }
+        else if (msg.address == delAddress){
+            <<<"here1">>>;
+            msg.getInt(0) => delaySlider.id;
+            msg.getFloat(1) => delaySlider.value;
+            delaySlider.broadcast();
+        }
+        else if (msg.address == fbackAddress){
+             <<<"here2">>>;
+            msg.getInt(0) => fbackSlider.id;
+            msg.getFloat(1) => fbackSlider.value;
+            fbackSlider.broadcast();
+        }
+        else if (msg.address == dgainAddress){
+             <<<"here3">>>;
+            msg.getInt(0) => dgainSlider.id;
+            msg.getFloat(1) => dgainSlider.value;
+            dgainSlider.broadcast();
+        }
+    }
 }

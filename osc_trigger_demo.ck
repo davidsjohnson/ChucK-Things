@@ -60,14 +60,6 @@ spork ~ waitForOSC();
 
 // Setup Up Audio Playback
 SndBuf buffy => Envelope e => dac;
-e => DelayL d => dac;
-d => Gain fback => d;
-
-0 => fback.gain;
-
-3::second => d.max;
-250::ms => d.delay;
-0 => d.gain;
 
 me.dir() + "audio/"=> string basefolder;
 

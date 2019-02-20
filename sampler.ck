@@ -2,31 +2,32 @@
 //######################
 
 // Samples to use
-["/audio/snare_01.wav", 
- "/audio/snare_03.wav",
+["/audio/stereo_fx_03.wav",
+ "/audio/stereo_fx_05.wav",
  "/audio/click_05.wav",
- "/audio/kick_02.wav",
- "/audio/kick_04.wav",
- "/audio/hihat_02.wav",
+ "/audio/snare_01.wav",
  "/audio/hihat_04.wav",
- "/audio/stereo_fx_03.wav",
- "/audio/stereo_fx_05.wav"
+ "/audio/snare_03.wav",
+ "/audio/hihat_02.wav",
+ "/audio/kick_02.wav",
+ "/audio/kick_04.wav"
  ] @=> string files[];
 
 // Intials Sound Buffers
 files.cap() => int numSamples;
 SndBuf samples[numSamples];
 
-// Initial Sound Chain with Reverb
-Chorus ch => Gain g => dac;
-ch @=> UGen in;
+// Initial Sound Chain
+Gain g => LPF lpf => dac;
+
+2000 => lpf.freq;
 
 // Load files and connect to dac
 for (0 => int i; i < numSamples; 1 +=> i){
     me.dir() + files[i] => samples[i].read;
     samples[i].samples() => samples[i].pos;
 
-    samples[i] => in;
+    samples[i] => g;
 }
 
 // Setup Events for Button Pressess
@@ -65,7 +66,7 @@ OscMsg msg;
 
 // Registered OSC Addresses
 "/pad/pressed" => string pressedAddress => oin.addAddress;
-"/rateSlider/value" => string rateAddress => oin.addAddress;
+"/slider/value" => string rateAddress => oin.addAddress;
 "/grid3d/values" => string chGridAddress => oin.addAddress;
 
 // Parse OSC Events and Broadcast 
@@ -100,27 +101,30 @@ spork ~ waitForOSC();
 fun void updateSampleRate(){
     while(true){
         rateEvent => now;
-        <<<"here: " + rateEvent.value>>>;
         rateEvent.value => samples[rateEvent.id].rate;
     }
 }
 spork ~ updateSampleRate();
 
-fun void updateModGridPos(){
-    while(true){
-        chGridEvent => now;
-        chGridEvent.x => ch.modFreq;
-        chGridEvent.y => ch.mix;
-        chGridEvent.z => ch.modDepth;
-    }
-}
-spork ~ updateModGridPos();
+//fun void updateModGridPos(){
+    //while(true){
+    //    chGridEvent => now;
+    //    chGridEvent.x => ch.modFreq;
+    //    chGridEvent.y => ch.mix;
+   //     chGridEvent.z => ch.modDepth;
+  //  }
+//}
+//spork ~ updateModGridPos();
         
 
 // While loop waiting for Button Presses 
 // (which are triggered via OSC)
 while (true){
     bp => now;
-    bp.velocity => samples[bp.id].gain;
+    clamp(bp.velocity * 1.5, 0, 1) => samples[bp.id].gain;
     0 => samples[bp.id].pos;
+}
+
+fun float clamp(float val, float a, float b){
+    return Math.max(Math.min(val, b), a);
 }

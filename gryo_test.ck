@@ -1,7 +1,7 @@
 TriOsc tri => dac;
 
 220 => tri.freq;
-.0 => tri.gain;
+0.0 => tri.gain;
 
 OscIn oin;
 10101 => oin.port;
@@ -9,6 +9,7 @@ OscMsg msg;
 
 "/gyro/velocity" => string gyroAddr => oin.addAddress;
 "/accxyz" => string touchAccAddr => oin.addAddress;
+"/gyro/grabbed" => string grabbedAddr => oin.addAddress;
 
 class XYZEvent extends Event{
     int id;
@@ -18,6 +19,10 @@ class XYZEvent extends Event{
 }
 XYZEvent gyroEvent;
 
+class TriggerEvent extends Event{
+    int id;
+}
+TriggerEvent trigEvent;
 
 class AccEvent extends Event{
     float x;
@@ -29,8 +34,8 @@ AccEvent accEvent;
 fun void waitForGyro(){
     while(true){
         gyroEvent => now;
-        clamp(tri.freq() + gyroEvent.x, 30, 3000) => tri.freq;
-        clamp(tri.gain() + gyroEvent.z, 0, 1) => tri.gain;
+        clamp(tri.freq() + gyroEvent.x * 5, 30, 3000) => tri.freq;
+        clamp(tri.gain() + gyroEvent.z * .01, 0, 1) => tri.gain;
         
         <<<"X: ", gyroEvent.x>>>;
         <<<"Y: ", gyroEvent.y>>>;
@@ -40,6 +45,17 @@ fun void waitForGyro(){
     }
 }
 spork ~ waitForGyro();
+
+0 => int started;
+fun void waitForTrigger(){
+    
+    while(started == 0){
+        trigEvent => now;
+        .5 => tri.gain;
+        1 => started;
+    }
+}
+spork ~ waitForTrigger();
 
 fun void waitForAcc(){
     while(true){
@@ -67,10 +83,14 @@ while (true){
             gyroEvent.broadcast();
         }
         else if (msg.address == touchAccAddr){
-            msg.getFloat(1) => accEvent.x;
-            msg.getFloat(2) => accEvent.y;
-            msg.getFloat(3) => accEvent.z;
+            msg.getFloat(0) => accEvent.x;
+            msg.getFloat(1) => accEvent.y;
+            msg.getFloat(2) => accEvent.z;
             accEvent.broadcast();
+        }
+        else if (msg.address == grabbedAddr){
+            msg.getInt(0) => trigEvent.id;
+            trigEvent.broadcast();
         }
     }
 }
