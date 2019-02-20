@@ -23,10 +23,10 @@ imp.radius(.999);
 [0, 2, 4, 7, 9, 11] @=> int hi[];
 
 while(true){
-    36 + Math.random2(0,3) * 12 + 
+    36 + Math.random2(-1,3) * 12 + 
         hi[Math.random2(0, hi.cap()-1)] => imp.t;
     
-    195::ms => now;
+    175::ms => now;
     imp.c();
     5::ms => now;
 }

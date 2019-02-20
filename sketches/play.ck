@@ -53,7 +53,7 @@ spork ~ waitForOSC();
 0 => int stepCounter;
 
 SndBuf kicky => Envelope kickEnv => dac;
-me.dir() + "/audio/kick_04.wav" => kicky.read;
+me.dir() + "../audio/kick_04.wav" => kicky.read;
 kicky.samples() => kicky.pos;
 .25 => kicky.rate;
 .25 => kicky.gain;
@@ -61,13 +61,13 @@ kicky.samples() => kicky.pos;
 SndBuf hatty => Echo ec => dac;
 .5 => ec.mix;
 100::ms => ec.delay;
-me.dir() + "/audio/hihat_03.wav" => hatty.read;
+me.dir() + "../audio/hihat_03.wav" => hatty.read;
 hatty.samples() => hatty.pos;
 .1 => hatty.rate;
 .1 => hatty.gain;
 
 SndBuf snare => dac;
-me.dir() + "/audio/hihat_02.wav" => snare.read;
+me.dir() + "../audio/hihat_02.wav" => snare.read;
 snare.samples() => snare.pos;
 2.5 => snare.rate;
 .01 => snare.gain;

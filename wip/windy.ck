@@ -36,7 +36,7 @@ public class Windy{
     }
 
     public void noiseLevel(float level){
-        gain => i.gain;
+        level => i.gain;
     }
 
     public void hpfreq(float freq){
