@@ -1,7 +1,7 @@
 TriOsc tri => dac;
 
 220 => tri.freq;
-.0 => tri.gain;
+.3 => tri.gain;
 
 OscIn oin;
 10101 => oin.port;
@@ -44,8 +44,8 @@ spork ~ waitForGyro();
 fun void waitForAcc(){
     while(true){
         accEvent => now;
-        clamp(tri.freq() + accEvent.x, 30, 3000) => tri.freq;
-        clamp(tri.gain() + accEvent.z, 0, 1) => tri.gain;
+        clamp(tri.freq() + accEvent.z, 30, 3000) => tri.freq;
+        //clamp(tri.gain() + accEvent.z, 0, 1) => tri.gain;
         
         <<<"X: ", accEvent.x>>>;
         <<<"Y: ", accEvent.y>>>;
@@ -54,7 +54,7 @@ fun void waitForAcc(){
         <<<"Gain: ", tri.gain()>>>;
     }
 }
-spork ~ waitForGyro();
+spork ~ waitForAcc();
 
 while (true){
     oin => now;
@@ -67,9 +67,9 @@ while (true){
             gyroEvent.broadcast();
         }
         else if (msg.address == touchAccAddr){
-            msg.getFloat(1) => accEvent.x;
-            msg.getFloat(2) => accEvent.y;
-            msg.getFloat(3) => accEvent.z;
+            msg.getFloat(0) => accEvent.x;
+            msg.getFloat(1) => accEvent.y;
+            msg.getFloat(2) => accEvent.z;
             accEvent.broadcast();
         }
     }

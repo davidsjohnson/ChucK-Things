@@ -87,5 +87,4 @@ while (true){
     else if (te.state == TriggerStateEnum.EXIT){ 
         <<<"Trigger Exit">>>;
     }
-        
 }
