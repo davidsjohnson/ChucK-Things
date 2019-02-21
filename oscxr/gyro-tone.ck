@@ -1,15 +1,24 @@
-TriOsc tri => dac;
+TriOsc tri => Gain g => dac;
 
-220 => tri.freq;
-0.0 => tri.gain;
+100 => int ogFreq;
+
+ogFreq => tri.freq;
+0.2 => tri.gain;
+
+0 => g.gain;
+
+0 => int gyroID;
+if (me.args() > 0){
+    Std.atoi(me.arg(0)) => gyroID;
+}
 
 OscIn oin;
-10101 => oin.port;
+20101 + gyroID => oin.port;
 OscMsg msg;
 
 "/gyro/velocity" => string gyroAddr => oin.addAddress;
-"/accxyz" => string touchAccAddr => oin.addAddress;
 "/gyro/grabbed" => string grabbedAddr => oin.addAddress;
+"/orientation/faceup" => string orientAddr => oin.addAddress;
 
 class XYZEvent extends Event{
     int id;
@@ -24,24 +33,17 @@ class TriggerEvent extends Event{
 }
 TriggerEvent trigEvent;
 
-class AccEvent extends Event{
-    float x;
-    float y;
-    float z;
+class StateEvent extends Event{
+    int id;
+    int state;
 }
-AccEvent accEvent;
+StateEvent orientEvent;
 
 fun void waitForGyro(){
     while(true){
         gyroEvent => now;
         clamp(tri.freq() + gyroEvent.x * 5, 30, 3000) => tri.freq;
-        clamp(tri.gain() + gyroEvent.z * .01, 0, 1) => tri.gain;
-        
-        <<<"X: ", gyroEvent.x>>>;
-        <<<"Y: ", gyroEvent.y>>>;
-        <<<"Z: ", gyroEvent.z>>>;
-        <<<"Freq: ", tri.freq()>>>;
-        <<<"Gain: ", tri.gain()>>>;
+        clamp(g.gain() + gyroEvent.z * .01, 0, 1) => g.gain;
     }
 }
 spork ~ waitForGyro();
@@ -57,40 +59,34 @@ fun void waitForTrigger(){
 }
 spork ~ waitForTrigger();
 
-fun void waitForAcc(){
+fun void WaitForOrientation(){
     while(true){
-        accEvent => now;
-        clamp(tri.freq() + accEvent.z, 30, 3000) => tri.freq;
-        //clamp(tri.gain() + accEvent.z, 0, 1) => tri.gain;
-        
-        <<<"X: ", accEvent.x>>>;
-        <<<"Y: ", accEvent.y>>>;
-        <<<"Z: ", accEvent.z>>>;
-        <<<"Freq: ", tri.freq()>>>;
-        <<<"Gain: ", tri.gain()>>>;
+        orientEvent => now;
+        (ogFreq * (orientEvent.state + 1)) => tri.freq;
     }
 }
-spork ~ waitForAcc();
+spork ~ WaitForOrientation();
 
 while (true){
     oin => now;
     while(oin.recv(msg)){
-        if (msg.address == gyroAddr){
-            msg.getInt(0) => gyroEvent.id;
-            msg.getFloat(1) => gyroEvent.x;
-            msg.getFloat(2) => gyroEvent.y;
-            msg.getFloat(3) => gyroEvent.z;
-            gyroEvent.broadcast();
+        if (msg.getInt(0) == gyroID){
+            if (msg.address == gyroAddr){
+                msg.getInt(0) => gyroEvent.id;
+                msg.getFloat(1) => gyroEvent.x;
+                msg.getFloat(2) => gyroEvent.y;
+                msg.getFloat(3) => gyroEvent.z;
+                gyroEvent.broadcast();
+            }
+            else if (msg.address == grabbedAddr){
+                msg.getInt(0) => trigEvent.id;
+                trigEvent.broadcast();
+            }
         }
-        else if (msg.address == touchAccAddr){
-            msg.getFloat(0) => accEvent.x;
-            msg.getFloat(1) => accEvent.y;
-            msg.getFloat(2) => accEvent.z;
-            accEvent.broadcast();
-        }
-        else if (msg.address == grabbedAddr){
-            msg.getInt(0) => trigEvent.id;
-            trigEvent.broadcast();
+        if (msg.address == orientAddr){
+            msg.getInt(0) => orientEvent.id;
+            msg.getInt(1) => orientEvent.state;
+            orientEvent.broadcast();
         }
     }
 }

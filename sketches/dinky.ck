@@ -9,6 +9,10 @@ public class Dinky{
     public void radius(float rad){
         rad => f.prad;
     }
+    
+    public float getRad(){
+        return f.prad();
+    }
 
     public void gain(float gain){
         gain => f.gain;
@@ -16,6 +20,15 @@ public class Dinky{
 
     public void connect(UGen ugen){
         e => ugen;
+    }
+    
+    public void freq(float _freq)
+    {
+        _freq => f.pfreq; 
+    }
+    
+    public float getfreq(){
+        return f.pfreq();
     }
 
     // t for trigger

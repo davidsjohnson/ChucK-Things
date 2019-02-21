@@ -22,7 +22,7 @@ TriggerEvent triggerExitEvent;
 // Setup Shred Mgmt
 30 => int maxShreds;
 int running[maxShreds];
-Osc @ oscs[maxShreds];
+Dinky @ dinks[maxShreds];
 
 fun void StartParticle(){
     while(true){
@@ -41,6 +41,7 @@ fun void KillParticle(){
         triggerExitEvent => now;
         triggerExitEvent.objID => int id;
         if (id < maxShreds){
+            <<<"Stopping", id>>>;
             0 => running[id];
         }
     }
@@ -50,26 +51,29 @@ spork ~ KillParticle();
 // Function to spork for individual particles
 fun void RunParticle(TriggerEvent event){
     //Setup Sound
-    TriOsc tri => ADSR e => dac;
-    e => DelayL delay => e;
-    delay => Gain fback => delay;
+    Dinky dink;
+    Gain g;
+    g => dac;
 
-    500::ms => delay.max => delay.delay;
-    1000::ms => e.releaseTime;
-    .2 => fback.gain;
+    1 => g.gain;
+
+    //Connect Dinky
+    dink.connect(g);
+    mapClamp(event.z, -.6, .6, -.005, .005) => float radInc;
+    dink.radius(.995 + radInc);
     
-    tri @=> oscs[event.objID];
+    dink @=> dinks[event.objID];
     mapClamp(event.x, -1, 1, 0, 9) $ int => int freqIdx;
-    freqs[freqIdx] => tri.freq;
     
-    .1 => tri.gain;
-    e.keyOn();
+    .1 => dink.gain;
+    freqs[freqIdx] => dink.t;
     while (running[event.objID] == 1){
-        100::ms => now;
+        1::ms => now;
     }
-    e.keyOff();
+    <<<"closing">>>;
+    dink.c();;
     1000::ms => now;
-    e =< dac;
+    g =< dac;
     // delay =< dac;
 }
 
@@ -78,10 +82,8 @@ fun void ModParticles(){
     while(true){
         triggerStayEvent => now;
         triggerStayEvent.objID => int objID;
-        if (oscs[objID] != null){
-            mapClamp(triggerStayEvent.y, -2, 2, -5, 5) => float freqInc;
-            <<<"Inc Freq", objID, freqInc, oscs[objID].freq()>>>;
-            (oscs[objID].freq() + freqInc ) => oscs[objID].freq;
+        if (dinks[objID] != null){
+           
         }
     }
 }
@@ -98,7 +100,7 @@ while (true){
             msg.getFloat(3) => triggerEnterEvent.y;
             msg.getFloat(4) => triggerEnterEvent.z;
             triggerEnterEvent.broadcast();
-            .5::ms => now;   // hack to deal with timing issues...(check to see if works on windows without this)
+            1::ms => now;   // hack to deal with timing issues...(check to see if works on windows without this)
         }
         else if (msg.address == stayAddr){
             msg.getInt(0) => triggerStayEvent.id;
@@ -107,7 +109,7 @@ while (true){
             msg.getFloat(3) => triggerStayEvent.y;
             msg.getFloat(4) => triggerStayEvent.z;
             triggerStayEvent.broadcast();
-            .5::ms => now;
+            1::ms => now;
         }
         else if (msg.address == exitAddr){
             msg.getInt(0) => triggerExitEvent.id;
@@ -116,7 +118,7 @@ while (true){
             msg.getFloat(3) => triggerExitEvent.y;
             msg.getFloat(4) => triggerExitEvent.z;
             triggerExitEvent.broadcast();
-            .5::ms => now;
+            1::ms => now;
         }
     }
 }
