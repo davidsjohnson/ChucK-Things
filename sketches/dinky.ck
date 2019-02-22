@@ -1,6 +1,6 @@
 public class Dinky{
 
-    Impulse i => BiQuad f => Envelope e;
+    TriOsc i => BiQuad f => Envelope e;
     0.99 => f.prad;
     1 => f.eqzs;
     .2 => f.gain;
@@ -33,7 +33,7 @@ public class Dinky{
 
     // t for trigger
     public void t(float freq){
-        1.0 => i.next;
+        //1.0 => i.next;
         freq => f.pfreq;
         e.keyOn();
     }

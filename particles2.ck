@@ -22,7 +22,7 @@ TriggerEvent triggerExitEvent;
 // Setup Shred Mgmt
 30 => int maxShreds;
 int running[maxShreds];
-Dinky @ dinks[maxShreds];
+TriOsc @ dinks[maxShreds];
 
 fun void StartParticle(){
     while(true){
@@ -52,30 +52,24 @@ spork ~ KillParticle();
 Gain g => dac;
 fun void RunParticle(TriggerEvent event){
     //Setup Sound
-    TriOsc dink;
-    0.1 => dink.gain;
-    g => dac;
-
-    1 => g.gain;
-
-    //Connect Dinky
-    dink.connect(g);
-    mapClamp(event.z, -.6, .6, -.005, .005) => float radInc;
-    dink.radius(.995 + radInc);
-    
+    TriOsc dink => ADSR e => g;
+    0.01 => e.gain;
+    400::ms => e.releaseTime;
+   
     dink @=> dinks[event.objID];
     mapClamp(event.x, -1, 1, 0, 9) $ int => int freqIdx;
+    freqs[freqIdx] => float freq;
+    mapClamp(event.z, -.6, .6, -freq/5.0, freq/5.0)  => float tuning;
+    freq + tuning => dink.freq;
     
-    .1 => dink.gain;
-    freqs[freqIdx] => dink.t;
+    e.keyOn();
     while (running[event.objID] == 1){
         1::ms => now;
     }
     <<<"closing">>>;
-    dink.c();;
-    1000::ms => now;
-    g =< dac;
-    // delay =< dac;
+    e.keyOff();
+    500::ms => now;
+    e =< g;
 }
 
 fun void ModParticles(){
@@ -84,7 +78,10 @@ fun void ModParticles(){
         triggerStayEvent => now;
         triggerStayEvent.objID => int objID;
         if (dinks[objID] != null){
-           
+            //mapClamp(triggerStayEvent.x, -1, 1, 0, 9) $ int => int freqIdx;
+            dinks[objID].freq() => float freq;
+            mapClamp(triggerStayEvent.z, -.6, .6, -freq/5.0, freq/5.0)  => float tuning;
+            freq + tuning => dinks[objID].freq;
         }
     }
 }

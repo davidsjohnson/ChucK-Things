@@ -2,15 +2,15 @@
 //######################
 
 // Samples to use
-["/audio/stereo_fx_03.wav",
- "/audio/stereo_fx_05.wav",
- "/audio/click_05.wav",
- "/audio/snare_01.wav",
- "/audio/hihat_04.wav",
- "/audio/snare_03.wav",
- "/audio/hihat_02.wav",
- "/audio/kick_02.wav",
- "/audio/kick_04.wav"
+["../audio/stereo_fx_03.wav",
+ "../audio/stereo_fx_05.wav",
+ "../audio/click_05.wav",
+ "../audio/snare_01.wav",
+ "../audio/hihat_04.wav",
+ "../audio/snare_03.wav",
+ "../audio/hihat_02.wav",
+ "../audio/kick_02.wav",
+ "../audio/kick_04.wav"
  ] @=> string files[];
 
 // Intials Sound Buffers
@@ -62,7 +62,7 @@ GridEvent chGridEvent;
 // Start receiver
 OscIn oin;
 OscMsg msg;
-10101 => oin.port;
+10103 => oin.port;
 
 // Registered OSC Addresses
 "/pad/pressed" => string pressedAddress => oin.addAddress;
